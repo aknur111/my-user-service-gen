@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+          cache: false
 
       - name: Install protoc
         run: |
@@ -56,6 +57,14 @@ jobs:
             cp "$file" "$target/"
           done
 
+      - name: Remove temp folder
+        run: |
+          rm -rf proto-src
+
+      - name: Update go modules
+        run: |
+          go mod tidy
+
       - name: Commit and push generated files
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
@@ -68,4 +77,3 @@ jobs:
 
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/aknur111/my-user-service-gen.git
           git push origin main
-          
