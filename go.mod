@@ -1,6 +1,6 @@
 module github.com/aknur111/my-user-service-gen
 
-go 1.24.0
+go 1.22
 
 require (
 	google.golang.org/grpc v1.80.0
