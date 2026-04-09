@@ -31,20 +31,26 @@ jobs:
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
-      - name: Generate Go Code from all Proto Files
+      - name: Show proto files found
         run: |
-          cd proto-repo
-          find . -name "*.proto" | while read proto_file; do
-            echo "Generating from $proto_file"
+          echo "=== Proto files found ==="
+          find proto-repo -name "*.proto"
+
+      - name: Generate Go Code
+        run: |
+          find proto-repo -name "*.proto" | while read proto_file; do
+            echo ">>> Generating from: $proto_file"
             protoc \
-              --go_out=../gen-repo \
+              --go_out=gen-repo \
               --go_opt=paths=source_relative \
-              --go-grpc_out=../gen-repo \
+              --go-grpc_out=gen-repo \
               --go-grpc_opt=paths=source_relative \
-              -I . \
-              -I /usr/include \
+              --proto_path=proto-repo \
+              --proto_path=/usr/include \
               "$proto_file"
           done
+          echo "=== Generated files ==="
+          find gen-repo -name "*.pb.go"
 
       - name: Push Generated Code
         run: |
@@ -52,5 +58,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --cached --quiet || git commit -m "chore: auto-generate from proto [skip ci]"
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: auto-generate from proto [skip ci]"
           git push origin main
